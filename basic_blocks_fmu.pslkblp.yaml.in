@@ -1,0 +1,32 @@
+pluginName: basic_blocks_FMU
+pluginType: coreBlockLibrary
+blockType: BasicFMU
+version: @PROJECT_VERSION@
+dependsOn:
+  - name: BlockTypesBasicFMU
+    version: @PROJECT_VERSION@
+blockLibraries:
+  - name: BasicBlocksFMU
+    blockTypes:
+      - name: BasicFMU
+        configurationValues:
+          - name: FMUModule
+            defaultValue: ""
+            type: string
+          - name: FMUClass
+            defaultValue: ""
+            type: string
+          - name: InputPortNumber
+            defaultValue: 1
+            type: int
+          - name: OutputPortNumber
+            defaultValue: 1
+            type: int
+          - name: Parameters
+            type: string[]
+            defaultValue:
+            - SampleParameter:1.0
+        inputPortNumber: InputPortNumber
+        outputPortNumber: OutputPortNumber
+    
+      

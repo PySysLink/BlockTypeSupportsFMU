@@ -168,7 +168,8 @@ public:
 private:
     static std::vector<std::string> getNames(
         const std::map<std::string, PySysLinkBase::ConfigurationValue>& configuration,
-        const std::string& key) {
+        const std::string& key) 
+    {
         const auto it = configuration.find(key);
 
         if (it == configuration.end()) {

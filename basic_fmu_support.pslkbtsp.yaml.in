@@ -1,0 +1,7 @@
+pluginName: basic_FMU_support
+pluginType: blockTypeSupport
+blockType: BasicFMU
+version: @PROJECT_VERSION@
+dependsOn:
+  - name: PySysLinkBase
+    version: @PYSYSLINK_BASE_VERSION@

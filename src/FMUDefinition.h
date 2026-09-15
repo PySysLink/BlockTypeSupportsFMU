@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <iostream>
 
 namespace BlockTypeSupports::BasicFMUSupport {
 
@@ -94,8 +95,8 @@ public:
     FMUDefinition& operator=(const FMUDefinition&) = delete;
 
     const std::string& unpackedPath() const { return unpackedPathString_; }
-    jm_callbacks* callbacks() const {
-        return const_cast<jm_callbacks*>(&callbacks_);
+    jm_callbacks& callbacks() const {
+        return const_cast<jm_callbacks&>(callbacks_);
     }
 
     const FMUVariable& requireVariable(const std::string& name, fmi3_causality_enu_t expectedCausality) const {
