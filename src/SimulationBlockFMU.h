@@ -3,12 +3,14 @@
 
 #include <fmilib.h>
 
+#include <algorithm>
 #include <cmath>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
+#include <PySysLinkBase/ConfigurationValue.h>
 #include <PySysLinkBase/ISimulationBlock.h>
 #include <PySysLinkBase/PortsAndSignalValues/InputPort.h>
 #include <PySysLinkBase/PortsAndSignalValues/OutputPort.h>
@@ -25,8 +27,8 @@ public:
         std::shared_ptr<const FMUDefinition> definition,
         std::map<std::string, PySysLinkBase::ConfigurationValue> configuration,
         std::shared_ptr<PySysLinkBase::IBlockEventsHandler> eventHandler)
-        : ISimulationBlock(configuration, eventHandler), definition_(std::move(definition)) {
-
+        : ISimulationBlock(configuration, eventHandler), definition_(std::move(definition)) 
+    {
         for (const auto& name : getNames(configuration, "FMUInputVariables")) {
             inputVariables_.push_back(definition_->requireVariable(name, fmi3_causality_enu_input));
             inputPorts_.push_back(std::make_shared<PySysLinkBase::InputPort>(false, std::make_shared<PySysLinkBase::SignalValue<double>>(0.0)));
@@ -71,8 +73,7 @@ public:
 
         sampleTime_ = std::make_shared<PySysLinkBase::SampleTime>(
             PySysLinkBase::SampleTimeType::inherited,
-            std::vector<PySysLinkBase::SampleTimeType>{
-                PySysLinkBase::SampleTimeType::discrete});
+            std::vector<PySysLinkBase::SampleTimeType>{PySysLinkBase::SampleTimeType::discrete});
     }
 
     ~SimulationBlockFMU() override {
@@ -102,10 +103,6 @@ public:
         const std::shared_ptr<PySysLinkBase::SampleTime> sampleTime, double currentTime, bool) override 
     {
         const double stepSize = sampleTime->GetDiscreteSampleTime();
-        if (!std::isfinite(stepSize) || stepSize <= 0.0) {
-            throw std::runtime_error(
-                "FMU block requires a resolved positive discrete sample time");
-        }
 
         if (!initialized_) {
             if (fmi3_import_enter_initialization_mode(
@@ -115,6 +112,19 @@ public:
                 throw std::runtime_error("Could not initialize the FMU block");
             }
             initialized_ = true;
+        }
+
+        if (hasStepped_) {
+            const double timeTolerance =
+                1e-12 * std::max(1.0, std::abs(currentTime));
+            const double timeDifference = currentTime - lastStepStartTime_;
+            if (std::abs(timeDifference) <= timeTolerance) {
+                return outputPorts_;
+            }
+            if (timeDifference < 0.0) {
+                throw std::runtime_error(
+                    "FMU block does not support simulation time rollback");
+            }
         }
 
         std::vector<fmi3_float64_t> inputValues(inputPorts_.size());
@@ -141,6 +151,9 @@ public:
                 &terminate, &earlyReturn, &lastSuccessfulTime) != fmi3_status_ok) {
             throw std::runtime_error("Could not advance the FMU block");
         }
+
+        lastStepStartTime_ = currentTime;
+        hasStepped_ = true;
 
         std::vector<fmi3_float64_t> outputValues(outputVariables_.size());
 
@@ -176,7 +189,8 @@ private:
             return {};
         }
 
-        return std::get<std::vector<std::string>>(it->second);
+        return PySysLinkBase::ConfigurationValueManager::TryGetConfigurationValue<
+            std::vector<std::string>>(key, configuration);
     }
 
     std::vector<fmi3_value_reference_t> inputValueReferences() const 
@@ -232,6 +246,8 @@ private:
     bool dllLoaded_ = false;
     bool instanceCreated_ = false;
     bool initialized_ = false;
+    bool hasStepped_ = false;
+    double lastStepStartTime_ = 0.0;
     std::shared_ptr<PySysLinkBase::SampleTime> sampleTime_;
     std::vector<FMUVariable> inputVariables_;
     std::vector<FMUVariable> outputVariables_;

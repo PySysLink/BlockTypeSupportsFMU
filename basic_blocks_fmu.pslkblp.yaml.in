@@ -10,23 +10,24 @@ blockLibraries:
     blockTypes:
       - name: BasicFMU
         configurationValues:
-          - name: FMUModule
+          - name: FMUPath
             defaultValue: ""
             type: string
-          - name: FMUClass
-            defaultValue: ""
-            type: string
-          - name: InputPortNumber
-            defaultValue: 1
-            type: int
-          - name: OutputPortNumber
-            defaultValue: 1
-            type: int
-          - name: Parameters
+          - name: FMUInputVariables
             type: string[]
-            defaultValue:
-            - SampleParameter:1.0
-        inputPortNumber: InputPortNumber
-        outputPortNumber: OutputPortNumber
+            defaultValue: []
+          - name: FMUOutputVariables
+            type: string[]
+            defaultValue: []
+        inputPortNumber: length(FMUInputVariables)
+        outputPortNumber: length(FMUOutputVariables)
+        inputPortTypes:
+          all:
+            port_category: FullySupportedSignalValue
+            signal_value_type: double
+        outputPortTypes:
+          all: 
+            port_category: FullySupportedSignalValue
+            signal_value_type: double
     
       
