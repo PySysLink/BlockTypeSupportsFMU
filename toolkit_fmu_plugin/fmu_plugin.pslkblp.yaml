@@ -1,0 +1,29 @@
+pluginName: fmu_plugin
+pluginType: highLevelBlockLibrary
+blockType: high_level
+metadata:
+  pythonFilename: fmu_plugin.py
+blockLibraries:
+  - name: fmu_library
+    blockTypes:
+      - name: FMU
+        configurationValues:
+          - name: FMUPath
+            defaultValue: ""
+            type: string
+          - name: FMUInputVariables
+            type: string[]
+            defaultValue: []
+          - name: FMUOutputVariables
+            type: string[]
+            defaultValue: []
+        inputPortNumber: length(FMUInputVariables)
+        outputPortNumber: length(FMUOutputVariables)
+        inputPortTypes:
+          all:
+            port_category: FullySupportedSignalValue
+            signal_value_type: double
+        outputPortTypes:
+          all: 
+            port_category: FullySupportedSignalValue
+            signal_value_type: double

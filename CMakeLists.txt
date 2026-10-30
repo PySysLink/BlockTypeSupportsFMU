@@ -77,6 +77,11 @@ install(FILES ${CMAKE_BINARY_DIR}/basic_blocks_fmu.${PROJECT_VERSION_UNDERSCORE}
     DESTINATION ${PLUGIN_INSTALL_DIR}
 )
 
+install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/toolkit_fmu_plugin/
+    DESTINATION ${PLUGIN_INSTALL_DIR}/toolkit_block_libraries/toolkit_fmu_plugin
+)
+
 include(CMakePackageConfigHelpers)
 
 # Generate the package configuration file for BlockTypeSupportsBasicFMUSupport

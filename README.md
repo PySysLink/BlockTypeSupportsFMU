@@ -17,3 +17,8 @@ The executable accepts an optional FMU path:
 ```sh
 build/fmu_test test/reference_fmus/BouncingBall.fmu
 ```
+
+The high-level FMU block exposes each FMU `Float64` parameter with a start
+value as an editable configuration property. Configured values are applied
+when the FMU enters initialization mode. Other parameter types are not yet
+supported.

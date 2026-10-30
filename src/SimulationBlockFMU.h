@@ -37,6 +37,13 @@ public:
             outputVariables_.push_back(definition_->requireVariable(name, fmi3_causality_enu_output));
             outputPorts_.push_back(std::make_shared<PySysLinkBase::OutputPort>(std::make_shared<PySysLinkBase::SignalValue<double>>(0.0)));
         }
+        for (const auto& name : getNames(configuration, "FMUParameterNames")) {
+            parameterVariables_.push_back(
+                definition_->requireVariable(name, fmi3_causality_enu_parameter));
+            parameterValues_.push_back(
+                PySysLinkBase::ConfigurationValueManager::TryGetConfigurationValue<double>(
+                    "FMUParameter_" + name, configuration));
+        }
 
         context_ = fmi_import_allocate_context(&definition_->callbacks());
         if (context_ == nullptr) {
@@ -107,8 +114,17 @@ public:
         if (!initialized_) {
             if (fmi3_import_enter_initialization_mode(
                     fmu_, fmi3_false, 0.0, currentTime, fmi3_false, 0.0)
-                != fmi3_status_ok ||
-                fmi3_import_exit_initialization_mode(fmu_) != fmi3_status_ok) {
+                != fmi3_status_ok) {
+                throw std::runtime_error("Could not initialize the FMU block");
+            }
+            if (!parameterVariables_.empty() &&
+                fmi3_import_set_float64(
+                    fmu_, parameterValueReferences().data(),
+                    parameterVariables_.size(), parameterValues_.data(),
+                    parameterValues_.size()) != fmi3_status_ok) {
+                throw std::runtime_error("Could not set FMU parameter values");
+            }
+            if (fmi3_import_exit_initialization_mode(fmu_) != fmi3_status_ok) {
                 throw std::runtime_error("Could not initialize the FMU block");
             }
             initialized_ = true;
@@ -212,6 +228,15 @@ private:
         return references;
     }
 
+    std::vector<fmi3_value_reference_t> parameterValueReferences() const
+    {
+        std::vector<fmi3_value_reference_t> references;
+        for (const auto& variable : parameterVariables_) {
+            references.push_back(variable.valueReference);
+        }
+        return references;
+    }
+
     void releaseFmu() {
         if (fmu_ == nullptr) {
             if (context_ != nullptr) {
@@ -251,6 +276,8 @@ private:
     std::shared_ptr<PySysLinkBase::SampleTime> sampleTime_;
     std::vector<FMUVariable> inputVariables_;
     std::vector<FMUVariable> outputVariables_;
+    std::vector<FMUVariable> parameterVariables_;
+    std::vector<fmi3_float64_t> parameterValues_;
     std::vector<std::shared_ptr<PySysLinkBase::InputPort>> inputPorts_;
     std::vector<std::shared_ptr<PySysLinkBase::OutputPort>> outputPorts_;
 };
