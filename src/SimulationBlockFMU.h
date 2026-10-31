@@ -78,9 +78,19 @@ public:
 
         instanceCreated_ = true;
 
-        sampleTime_ = std::make_shared<PySysLinkBase::SampleTime>(
-            PySysLinkBase::SampleTimeType::inherited,
-            std::vector<PySysLinkBase::SampleTimeType>{PySysLinkBase::SampleTimeType::discrete});
+        double sampleTimeValue = PySysLinkBase::ConfigurationValueManager::TryGetConfigurationValue<double>("SampleTime", configuration);
+        if (sampleTimeValue <= 0 && sampleTimeValue != -1)
+        {
+            throw std::invalid_argument("SampleTime must be greater than 0 or equal to -1 for inherited sample time.");
+        }
+        if (sampleTimeValue == -1)
+        {
+            this->sampleTime_ = std::make_shared<PySysLinkBase::SampleTime>(PySysLinkBase::SampleTimeType::inherited, std::vector<PySysLinkBase::SampleTimeType>{PySysLinkBase::SampleTimeType::discrete});
+        }
+        else
+        {
+            this->sampleTime_ = std::make_shared<PySysLinkBase::SampleTime>(PySysLinkBase::SampleTimeType::discrete, sampleTimeValue);
+        }
     }
 
     ~SimulationBlockFMU() override {

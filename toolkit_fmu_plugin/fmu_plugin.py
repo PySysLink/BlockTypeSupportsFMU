@@ -51,6 +51,9 @@ class FMUPlugin(pysyslink_toolkit.BlockLibraryPlugin):
                 ),
                 "FMUParameterNames[vector<string>]": parameter_names,
                 **parameter_values,
+                "SampleTime[double]": self._get_property_value(
+                    high_level_block, "SampleTime", -1
+                ),
             },
         )
 

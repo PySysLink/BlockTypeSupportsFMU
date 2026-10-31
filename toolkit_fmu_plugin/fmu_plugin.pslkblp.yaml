@@ -17,6 +17,9 @@ blockLibraries:
           - name: FMUOutputVariables
             type: string[]
             defaultValue: []
+          - name: SampleTime
+            type: double
+            defaultValue: -1
         inputPortNumber: length(FMUInputVariables)
         outputPortNumber: length(FMUOutputVariables)
         inputPortTypes:
